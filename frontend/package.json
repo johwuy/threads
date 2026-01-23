@@ -12,6 +12,8 @@
     "db:types": "supabase gen types typescript --project-id gtivebiluncyfnzgkxmp > src/lib/database.types.ts"
   },
   "dependencies": {
+    "@radix-ui/react-navigation-menu": "^1.2.14",
+    "@radix-ui/react-slot": "^1.2.4",
     "@supabase/supabase-js": "^2.91.0",
     "@tailwindcss/vite": "^4.1.18",
     "class-variance-authority": "^0.7.1",

@@ -1,10 +1,11 @@
-import { useRouteError, isRouteErrorResponse, Link } from 'react-router-dom'
+import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle, Home } from 'lucide-react'
+import { AlertCircle, ArrowLeft } from 'lucide-react'
 
 function ErrorPage() {
   const error = useRouteError()
+  const navigate = useNavigate()
 
   let errorMessage: string
   let errorStatus: number | undefined
@@ -16,6 +17,10 @@ function ErrorPage() {
     errorMessage = error.message
   } else {
     errorMessage = 'An unknown error occurred'
+  }
+
+  function handleGoBack() {
+    navigate(-1)
   }
 
   return (
@@ -36,12 +41,10 @@ function ErrorPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
-          <Link to="/">
-            <Button className="w-full" size="lg">
-              <Home className="mr-2 h-4 w-4" />
-              Go back home
-            </Button>
-          </Link>
+          <Button className="w-full" size="lg" onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Go back
+          </Button>
         </CardContent>
       </Card>
     </div>

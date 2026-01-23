@@ -16,7 +16,7 @@ export default function RootLayout() {
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="text-2xl font-bold hover:scale-105 transition-transform duration-200 inline-block">
-            Friend Tracker
+            Threads
           </Link>
           
           <NavigationMenu>
@@ -72,7 +72,7 @@ export default function RootLayout() {
               <Linkedin className="h-5 w-5" />
             </a>
           </div>
-          <p>© {new Date().getFullYear()} Friend Tracker. Built with love.</p>
+          <p>© {new Date().getFullYear()} Threads. Built with love.</p>
         </div>
       </footer>
     </div>

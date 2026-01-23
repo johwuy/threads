@@ -8,7 +8,7 @@ export default function Home() {
     <div className="max-w-5xl mx-auto">
       <div className="text-center py-12 mb-12">
         <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-          Welcome to Friend Tracker
+          Welcome to Threads
         </h1>
         <p className="text-xl text-muted-foreground mb-8">
           Keep track of your friends and stay connected

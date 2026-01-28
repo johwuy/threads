@@ -4,7 +4,7 @@ import { format, parse } from 'date-fns'
 import { toast } from 'sonner'
 import { useContacts } from '@/hooks/useContacts'
 import type { Tables } from '@/lib/database.types'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -151,9 +151,6 @@ export default function Contacts() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Contacts</CardTitle>
-              <CardDescription>
-                Manage your contacts and never miss a birthday
-              </CardDescription>
             </div>
             <Button onClick={openAddDialog}>
               <Plus className="mr-2 h-4 w-4" />

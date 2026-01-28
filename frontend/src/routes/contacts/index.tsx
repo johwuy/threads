@@ -271,14 +271,13 @@ export default function Contacts() {
                   placeholder="555-0100"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="birthday">Birthday</Label>
-                <DatePicker
-                  date={formData.birthday}
-                  onDateChange={(date) => setFormData({ ...formData, birthday: date })}
-                  placeholder="Select birthday"
-                />
-              </div>
+              <DatePicker
+                date={formData.birthday}
+                onDateChange={(date) => setFormData({ ...formData, birthday: date })}
+                placeholder="Select birthday"
+                label="Birthday"
+                id="birthday"
+              />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>

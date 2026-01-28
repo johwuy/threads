@@ -164,14 +164,13 @@ export default function ContactDetail() {
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="birthday">Birthday</Label>
-                  <DatePicker
-                    date={formData.birthday?.split('T')[0] || null}
-                    onDateChange={(date) => setFormData({ ...formData, birthday: date })}
-                    placeholder="Select birthday"
-                  />
-                </div>
+                <DatePicker
+                  date={formData.birthday?.split('T')[0] || null}
+                  onDateChange={(date) => setFormData({ ...formData, birthday: date })}
+                  placeholder="Select birthday"
+                  label="Birthday"
+                  id="birthday"
+                />
               </>
             ) : (
               // View Mode

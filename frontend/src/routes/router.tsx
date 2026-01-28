@@ -3,6 +3,7 @@ import RootLayout from './root-layout'
 import ErrorPage from './error-page'
 import Home from './home'
 import Contacts from './contacts'
+import ContactDetail from './contacts/[id]'
 
 export const router = createBrowserRouter([
   {
@@ -17,7 +18,11 @@ export const router = createBrowserRouter([
       {
         path: "/contacts",
         element: <Contacts />,
-      }
+      },
+      {
+        path: "/contacts/:id",
+        element: <ContactDetail />,
+      }     
     ],
   },
 ])

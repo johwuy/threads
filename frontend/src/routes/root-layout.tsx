@@ -7,12 +7,14 @@ import {
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu'
 import { Github, Linkedin } from 'lucide-react'
+import { ContactsProvider } from '@/contexts/ContactsContext'
 
 export default function RootLayout() {
   const location = useLocation()
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <ContactsProvider>
+      <div className="min-h-screen flex flex-col">
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="text-2xl font-bold hover:scale-105 transition-transform duration-200 inline-block">
@@ -75,6 +77,7 @@ export default function RootLayout() {
           <p>© {new Date().getFullYear()} Threads. Built with love.</p>
         </div>
       </footer>
-    </div>
+      </div>
+    </ContactsProvider>
   )
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { format, parse } from 'date-fns'
+import { toast } from 'sonner'
 import { useContacts } from '@/hooks/useContacts'
 import type { Tables, TablesUpdate } from '@/lib/database.types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -53,22 +54,35 @@ export default function ContactDetail() {
     return format(date, 'MMMM d, yyyy')
   }
   
-  const handleSave = async () => {
-    if (!formData.name.trim()) return
-    
-    try {
-      const data: TablesUpdate<'contact'> = {
-        name: formData.name.trim(),
-        email: formData.email?.trim() || null,
-        phone: formData.phone?.trim() || null,
-        birthday: formData.birthday || null
-      }
-      
-      await updateContact(formData.id, data)
-      setEditMode(false)
-    } catch (error) {
-      console.error('Failed to update contact:', error)
+  const handleSave = () => {
+    if (!formData.name.trim()) {
+      toast.error('Name is required')
+      return
     }
+    
+    // Exit edit mode immediately for instant feedback
+    setEditMode(false)
+    
+    const data: TablesUpdate<'contact'> = {
+      name: formData.name.trim(),
+      email: formData.email?.trim() || null,
+      phone: formData.phone?.trim() || null,
+      birthday: formData.birthday || null
+    }
+    
+    // Show toast with promise
+    toast.promise(
+      updateContact(formData.id, data),
+      {
+        loading: 'Saving changes...',
+        success: 'Contact updated successfully',
+        error: (err) => {
+          // Revert to edit mode on error
+          setEditMode(true)
+          return `Failed to save: ${err.message || 'Unknown error'}`
+        },
+      }
+    )
   }
   
   const handleCancel = () => {
@@ -76,13 +90,17 @@ export default function ContactDetail() {
     setEditMode(false)
   }
   
-  const handleDelete = async () => {
-    try {
-      await deleteContact(contact.id)
-      navigate('/contacts')
-    } catch (error) {
-      console.error('Failed to delete contact:', error)
-    }
+  const handleDelete = () => {
+    setDeleteConfirmOpen(false)
+    
+    toast.promise(
+      deleteContact(contact.id).then(() => navigate('/contacts')),
+      {
+        loading: 'Deleting contact...',
+        success: 'Contact deleted successfully',
+        error: (err) => `Failed to delete: ${err.message || 'Unknown error'}`,
+      }
+    )
   }
   
   return (

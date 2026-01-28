@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, parse } from 'date-fns'
+import { toast } from 'sonner'
 import { useContacts } from '@/hooks/useContacts'
 import type { Tables } from '@/lib/database.types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -89,41 +90,54 @@ export default function Contacts() {
     setDeleteConfirmOpen(true)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.name.trim()) return
-
-    try {
-      const data = {
-        name: formData.name.trim(),
-        email: formData.email.trim() || null,
-        phone: formData.phone.trim() || null,
-        birthday: formData.birthday || null
-      }
-
-      if (editingContact) {
-        await updateContact(editingContact.id, data)
-      } else {
-        await createContact(data)
-      }
-      
-      setDialogOpen(false)
-      setFormData({ name: '', email: '', phone: '', birthday: null })
-    } catch (error) {
-      console.error('Failed to save contact:', error)
+    if (!formData.name.trim()) {
+      toast.error('Name is required')
+      return
     }
+
+    const data = {
+      name: formData.name.trim(),
+      email: formData.email.trim() || null,
+      phone: formData.phone.trim() || null,
+      birthday: formData.birthday || null
+    }
+
+    const isEditing = editingContact !== null
+    const promise = isEditing 
+      ? updateContact(editingContact.id, data)
+      : createContact(data)
+
+    // Close dialog immediately for instant feedback
+    setDialogOpen(false)
+    setFormData({ name: '', email: '', phone: '', birthday: null })
+
+    toast.promise(
+      promise,
+      {
+        loading: isEditing ? 'Updating contact...' : 'Creating contact...',
+        success: isEditing ? 'Contact updated successfully' : 'Contact created successfully',
+        error: (err) => `Failed to save: ${err.message || 'Unknown error'}`,
+      }
+    )
   }
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!contactToDelete) return
     
-    try {
-      await deleteContact(contactToDelete.id)
-      setDeleteConfirmOpen(false)
-      setContactToDelete(null)
-    } catch (error) {
-      console.error('Failed to delete contact:', error)
-    }
+    const contactName = contactToDelete.name
+    setDeleteConfirmOpen(false)
+    setContactToDelete(null)
+    
+    toast.promise(
+      deleteContact(contactToDelete.id),
+      {
+        loading: 'Deleting contact...',
+        success: `${contactName} deleted successfully`,
+        error: (err) => `Failed to delete: ${err.message || 'Unknown error'}`,
+      }
+    )
   }
 
   const handleRowClick = (contactId: number) => {

@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       contact: {
         Row: {
+          archived: boolean
           birthday: string | null
           created_at: string
           email: string | null
@@ -25,6 +26,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          archived?: boolean
           birthday?: string | null
           created_at?: string
           email?: string | null
@@ -34,6 +36,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          archived?: boolean
           birthday?: string | null
           created_at?: string
           email?: string | null

@@ -31,15 +31,19 @@ export interface ContactsContextType {
   loading: boolean
   sortField: SortField
   sortDirection: SortDirection
-  
+  showArchived: boolean
+
   // CRUD Operations
   createContact: (data: TablesInsert<'contact'>) => Promise<void>
   updateContact: (id: number, data: TablesUpdate<'contact'>) => Promise<void>
   deleteContact: (id: number) => Promise<void>
   getContact: (id: number) => Contact | undefined
-  
+  archiveContact: (id: number) => Promise<void>
+  unarchiveContact: (id: number) => Promise<void>
+
   // Utilities
   setSorting: (field: SortField, direction: SortDirection) => void
+  setShowArchived: (show: boolean) => void
   refreshContacts: () => Promise<void>
 }
 
@@ -55,13 +59,20 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
   const [loading, setLoading] = useState(true)
   const [sortField, setSortField] = useState<SortField>('birthday')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+  const [showArchived, setShowArchived] = useState(false)
 
   const fetchContacts = useCallback(async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('contact')
-        .select('*')
+      let query = supabase.from('contact').select('*')
+
+      // When showArchived is false, only show active contacts
+      // When showArchived is true, show all contacts
+      if (!showArchived) {
+        query = query.eq('archived', false)
+      }
+
+      const { data, error } = await query
 
       if (error) throw error
       setContacts(data || [])
@@ -70,7 +81,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [showArchived])
 
   useEffect(() => {
     fetchContacts()
@@ -111,6 +122,34 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
       await fetchContacts()
     } catch (error) {
       console.error('Error deleting contact:', error)
+      throw error
+    }
+  }, [fetchContacts])
+
+  const archiveContact = useCallback(async (id: number) => {
+    try {
+      const { error } = await supabase
+        .from('contact')
+        .update({ archived: true })
+        .eq('id', id)
+      if (error) throw error
+      await fetchContacts()
+    } catch (error) {
+      console.error('Error archiving contact:', error)
+      throw error
+    }
+  }, [fetchContacts])
+
+  const unarchiveContact = useCallback(async (id: number) => {
+    try {
+      const { error } = await supabase
+        .from('contact')
+        .update({ archived: false })
+        .eq('id', id)
+      if (error) throw error
+      await fetchContacts()
+    } catch (error) {
+      console.error('Error unarchiving contact:', error)
       throw error
     }
   }, [fetchContacts])
@@ -157,11 +196,15 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
     loading,
     sortField,
     sortDirection,
+    showArchived,
     createContact,
     updateContact,
     deleteContact,
     getContact,
+    archiveContact,
+    unarchiveContact,
     setSorting,
+    setShowArchived,
     refreshContacts,
   }
 

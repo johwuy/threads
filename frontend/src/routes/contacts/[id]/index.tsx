@@ -11,21 +11,25 @@ import { Label } from '@/components/ui/label'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
-import { ArrowLeft, Pencil, Save, X, Trash2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { ArrowLeft, Pencil, Save, X, Trash2, Archive, ArchiveRestore } from 'lucide-react'
 
 type Contact = Tables<'contact'>
 
 export default function ContactDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { getContact, updateContact, deleteContact } = useContacts()
-  
+  const { getContact, updateContact, deleteContact, archiveContact, unarchiveContact } = useContacts()
+
   const contact = getContact(Number(id))
-  
+
   const [editMode, setEditMode] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false)
   const [formData, setFormData] = useState<Contact | null>(contact || null)
-  
+
+  const isArchived = contact?.archived ?? false
+
   if (!contact || !formData) {
     return (
       <div className="max-w-4xl mx-auto">
@@ -92,13 +96,37 @@ export default function ContactDetail() {
   
   const handleDelete = () => {
     setDeleteConfirmOpen(false)
-    
+
     toast.promise(
       deleteContact(contact.id).then(() => navigate('/contacts')),
       {
         loading: 'Deleting contact...',
         success: 'Contact deleted successfully',
         error: (err) => `Failed to delete: ${err.message || 'Unknown error'}`,
+      }
+    )
+  }
+
+  const handleArchive = () => {
+    setArchiveConfirmOpen(false)
+
+    toast.promise(
+      archiveContact(contact.id),
+      {
+        loading: 'Archiving contact...',
+        success: 'Contact archived successfully',
+        error: (err) => `Failed to archive: ${err.message || 'Unknown error'}`,
+      }
+    )
+  }
+
+  const handleUnarchive = () => {
+    toast.promise(
+      unarchiveContact(contact.id),
+      {
+        loading: 'Restoring contact...',
+        success: 'Contact restored successfully',
+        error: (err) => `Failed to restore: ${err.message || 'Unknown error'}`,
       }
     )
   }
@@ -119,28 +147,48 @@ export default function ContactDetail() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl">{contact.name}</CardTitle>
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-2xl">{contact.name}</CardTitle>
+              {isArchived && <Badge variant="secondary">Archived</Badge>}
+            </div>
             <div className="flex items-center gap-2">
-              {!editMode ? (
-                <Button variant="outline" size="sm" onClick={() => setEditMode(true)}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Edit
+              {contact.archived ? (
+                <Button variant="outline" size="sm" onClick={handleUnarchive}>
+                  <ArchiveRestore className="mr-2 h-4 w-4" />
+                  Unarchive
                 </Button>
               ) : (
                 <>
-                  <Button variant="outline" size="sm" onClick={handleCancel}>
-                    <X className="mr-2 h-4 w-4" />
-                    Cancel
-                  </Button>
-                  <Button size="sm" onClick={handleSave}>
-                    <Save className="mr-2 h-4 w-4" />
-                    Save
+                  {!editMode ? (
+                    <Button variant="outline" size="sm" onClick={() => setEditMode(true)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit
+                    </Button>
+                  ) : (
+                    <>
+                      <Button variant="outline" size="sm" onClick={handleCancel}>
+                        <X className="mr-2 h-4 w-4" />
+                        Cancel
+                      </Button>
+                      <Button size="sm" onClick={handleSave}>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save
+                      </Button>
+                    </>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setArchiveConfirmOpen(true)}
+                  >
+                    <Archive className="mr-2 h-4 w-4" />
+                    Archive
                   </Button>
                 </>
               )}
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setDeleteConfirmOpen(true)}
                 className="text-destructive hover:text-destructive"
               >
@@ -250,11 +298,29 @@ export default function ContactDetail() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Archive Confirmation Dialog */}
+      <AlertDialog open={archiveConfirmOpen} onOpenChange={setArchiveConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive contact?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {contact.name} will be moved to the archive. You can restore them later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleArchive}>
+              Archive
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

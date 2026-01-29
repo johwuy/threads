@@ -13,7 +13,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { DatePicker } from '@/components/ui/date-picker'
-import { ArrowUpDown, ArrowUp, ArrowDown, Plus, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
+import { ArrowUpDown, ArrowUp, ArrowDown, Plus, MoreHorizontal, Pencil, Trash2, Archive, ArchiveRestore } from 'lucide-react'
 
 type Contact = Tables<'contact'>
 type SortField = 'birthday' | 'name'
@@ -37,12 +39,14 @@ function SortIcon({ field, sortField, sortDirection }: {
 
 export default function Contacts() {
   const navigate = useNavigate()
-  const { contacts, loading, sortField, sortDirection, createContact, updateContact, deleteContact, setSorting } = useContacts()
-  
+  const { contacts, loading, sortField, sortDirection, showArchived, createContact, updateContact, deleteContact, archiveContact, unarchiveContact, setSorting, setShowArchived } = useContacts()
+
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingContact, setEditingContact] = useState<Contact | null>(null)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [contactToDelete, setContactToDelete] = useState<Contact | null>(null)
+  const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false)
+  const [contactToArchive, setContactToArchive] = useState<Contact | null>(null)
   
   const [formData, setFormData] = useState({
     name: '',
@@ -88,6 +92,42 @@ export default function Contacts() {
     e.stopPropagation()
     setContactToDelete(contact)
     setDeleteConfirmOpen(true)
+  }
+
+  const openArchiveDialog = (contact: Contact, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setContactToArchive(contact)
+    setArchiveConfirmOpen(true)
+  }
+
+  const handleArchive = () => {
+    if (!contactToArchive) return
+
+    const contactName = contactToArchive.name
+    setArchiveConfirmOpen(false)
+    setContactToArchive(null)
+
+    toast.promise(
+      archiveContact(contactToArchive.id),
+      {
+        loading: 'Archiving contact...',
+        success: `${contactName} archived successfully`,
+        error: (err) => `Failed to archive: ${err.message || 'Unknown error'}`,
+      }
+    )
+  }
+
+  const handleUnarchive = (contact: Contact, e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    toast.promise(
+      unarchiveContact(contact.id),
+      {
+        loading: 'Restoring contact...',
+        success: `${contact.name} restored successfully`,
+        error: (err) => `Failed to restore: ${err.message || 'Unknown error'}`,
+      }
+    )
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -149,8 +189,21 @@ export default function Contacts() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex items-center gap-4">
               <CardTitle>Contacts</CardTitle>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="show-archived"
+                  checked={showArchived}
+                  onCheckedChange={(checked) => setShowArchived(checked === true)}
+                />
+                <label
+                  htmlFor="show-archived"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  Show archived
+                </label>
+              </div>
             </div>
             <Button onClick={openAddDialog}>
               <Plus className="mr-2 h-4 w-4" />
@@ -196,12 +249,17 @@ export default function Contacts() {
               </TableHeader>
               <TableBody>
                 {contacts.map((contact) => (
-                  <TableRow 
+                  <TableRow
                     key={contact.id}
-                    className="cursor-pointer"
+                    className={`cursor-pointer ${contact.archived ? 'opacity-50' : ''}`}
                     onClick={() => handleRowClick(contact.id)}
                   >
-                    <TableCell className="font-medium">{contact.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <span className="flex items-center gap-2">
+                        {contact.name}
+                        {contact.archived && <Badge variant="secondary">Archived</Badge>}
+                      </span>
+                    </TableCell>
                     <TableCell>{contact.email || '-'}</TableCell>
                     <TableCell>{contact.phone || '-'}</TableCell>
                     <TableCell>{formatDate(contact.birthday)}</TableCell>
@@ -219,11 +277,24 @@ export default function Contacts() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={(e) => openEditDialog(contact, e)}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          {!contact.archived ? (
+                            <>
+                              <DropdownMenuItem onClick={(e) => openEditDialog(contact, e)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={(e) => openArchiveDialog(contact, e)}>
+                                <Archive className="mr-2 h-4 w-4" />
+                                Archive
+                              </DropdownMenuItem>
+                            </>
+                          ) : (
+                            <DropdownMenuItem onClick={(e) => handleUnarchive(contact, e)}>
+                              <ArchiveRestore className="mr-2 h-4 w-4" />
+                              Unarchive
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
                             onClick={(e) => openDeleteDialog(contact, e)}
                             className="text-destructive focus:text-destructive"
                           >
@@ -315,6 +386,24 @@ export default function Contacts() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Archive Confirmation Dialog */}
+      <AlertDialog open={archiveConfirmOpen} onOpenChange={setArchiveConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive contact?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {contactToArchive?.name} will be moved to the archive. You can restore them later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleArchive}>
+              Archive
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

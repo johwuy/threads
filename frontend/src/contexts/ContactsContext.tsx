@@ -1,10 +1,29 @@
-import { createContext, useCallback, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useEffect, useState, useMemo, type ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Tables, TablesInsert, TablesUpdate } from '@/lib/database.types'
 
 type Contact = Tables<'contact'>
 type SortField = 'birthday' | 'name'
 type SortDirection = 'asc' | 'desc'
+
+// Calculate days until next birthday from today
+function getDaysUntilBirthday(birthdayStr: string | null): number {
+  if (!birthdayStr) return Infinity // Contacts without birthdays go to the end
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const birthday = new Date(birthdayStr.split('T')[0])
+  const thisYearBirthday = new Date(today.getFullYear(), birthday.getMonth(), birthday.getDate())
+
+  // If birthday has passed this year, use next year's birthday
+  if (thisYearBirthday < today) {
+    thisYearBirthday.setFullYear(today.getFullYear() + 1)
+  }
+
+  const diffTime = thisYearBirthday.getTime() - today.getTime()
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+}
 
 export interface ContactsContextType {
   // State
@@ -43,7 +62,6 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
       const { data, error } = await supabase
         .from('contact')
         .select('*')
-        .order(sortField, { ascending: sortDirection === 'asc', nullsFirst: false })
 
       if (error) throw error
       setContacts(data || [])
@@ -52,7 +70,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
     } finally {
       setLoading(false)
     }
-  }, [sortField, sortDirection])
+  }, [])
 
   useEffect(() => {
     fetchContacts()
@@ -110,8 +128,32 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
     await fetchContacts()
   }, [fetchContacts])
 
+  // Sort contacts client-side
+  const sortedContacts = useMemo(() => {
+    const sorted = [...contacts]
+
+    if (sortField === 'birthday') {
+      // Sort by days until next birthday
+      sorted.sort((a, b) => {
+        const daysA = getDaysUntilBirthday(a.birthday)
+        const daysB = getDaysUntilBirthday(b.birthday)
+        return sortDirection === 'asc' ? daysA - daysB : daysB - daysA
+      })
+    } else {
+      // Sort by name
+      sorted.sort((a, b) => {
+        const nameA = a.name.toLowerCase()
+        const nameB = b.name.toLowerCase()
+        const comparison = nameA.localeCompare(nameB)
+        return sortDirection === 'asc' ? comparison : -comparison
+      })
+    }
+
+    return sorted
+  }, [contacts, sortField, sortDirection])
+
   const value: ContactsContextType = {
-    contacts,
+    contacts: sortedContacts,
     loading,
     sortField,
     sortDirection,

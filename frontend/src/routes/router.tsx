@@ -4,6 +4,9 @@ import ErrorPage from './error-page'
 import Home from './home'
 import Contacts from './contacts'
 import ContactDetail from './contacts/[id]'
+import Login from './login'
+import Signup from './signup'
+import { AuthGuard } from '@/components/AuthGuard'
 
 export const router = createBrowserRouter([
   {
@@ -16,13 +19,21 @@ export const router = createBrowserRouter([
         element: <Home />,
       },
       {
+        path: "/login",
+        element: <Login />,
+      },
+      {
+        path: "/signup",
+        element: <Signup />,
+      },
+      {
         path: "/contacts",
-        element: <Contacts />,
+        element: <AuthGuard><Contacts /></AuthGuard>,
       },
       {
         path: "/contacts/:id",
-        element: <ContactDetail />,
-      }     
+        element: <AuthGuard><ContactDetail /></AuthGuard>,
+      }
     ],
   },
 ])

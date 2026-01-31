@@ -1,5 +1,6 @@
 import { createContext, useCallback, useEffect, useState, useMemo, type ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
 import type { Tables, TablesInsert, TablesUpdate } from '@/lib/database.types'
 
 type Contact = Tables<'contact'>
@@ -55,6 +56,7 @@ interface ContactsProviderProps {
 }
 
 export function ContactsProvider({ children }: ContactsProviderProps) {
+  const { user } = useAuth()
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
   const [sortField, setSortField] = useState<SortField>('birthday')
@@ -62,9 +64,18 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
   const [showArchived, setShowArchived] = useState(false)
 
   const fetchContacts = useCallback(async () => {
+    if (!user) {
+      setContacts([])
+      setLoading(false)
+      return
+    }
+
     try {
       setLoading(true)
-      let query = supabase.from('contact').select('*')
+      let query = supabase
+        .from('contact')
+        .select('*')
+        .eq('user_id', user.id)
 
       // When showArchived is false, only show active contacts
       // When showArchived is true, show all contacts
@@ -81,22 +92,27 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
     } finally {
       setLoading(false)
     }
-  }, [showArchived])
+  }, [user, showArchived])
 
   useEffect(() => {
     fetchContacts()
   }, [fetchContacts])
 
   const createContact = useCallback(async (data: TablesInsert<'contact'>) => {
+    if (!user) throw new Error('Must be logged in to create contacts')
+
     try {
-      const { error } = await supabase.from('contact').insert(data)
+      const { error } = await supabase.from('contact').insert({
+        ...data,
+        user_id: user.id,
+      })
       if (error) throw error
       await fetchContacts()
     } catch (error) {
       console.error('Error creating contact:', error)
       throw error
     }
-  }, [fetchContacts])
+  }, [user, fetchContacts])
 
   const updateContact = useCallback(async (id: number, data: TablesUpdate<'contact'>) => {
     try {

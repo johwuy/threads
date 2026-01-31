@@ -18,7 +18,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   }
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    return <Navigate to={`/login?redirectTo=${encodeURIComponent(location.pathname)}`} replace />
   }
 
   return <>{children}</>

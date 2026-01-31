@@ -22,10 +22,11 @@ export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const from = location.state?.from?.pathname || '/contacts'
+  const searchParams = new URLSearchParams(location.search)
+  const from = searchParams.get('redirectTo') || '/contacts'
 
   if (!authLoading && user) {
-    return <Navigate to="/" replace />
+    return <Navigate to={from} replace />
   }
 
   async function handleSubmit(e: React.FormEvent) {

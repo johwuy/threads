@@ -41,15 +41,6 @@ function Header() {
         <div className="flex items-center gap-4">
           <NavigationMenu>
             <NavigationMenuList>
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  asChild
-                  className={navigationMenuTriggerStyle()}
-                  active={location.pathname === '/'}
-                >
-                  <Link to="/">Home</Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
               {user && (
                 <NavigationMenuItem>
                   <NavigationMenuLink

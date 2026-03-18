@@ -14,7 +14,9 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Pencil, Save, X, Trash2, Archive, ArchiveRestore } from 'lucide-react'
+import { ArrowLeft, Pencil, Save, X, Trash2, Archive, ArchiveRestore, MoreHorizontal } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { useMediaQuery } from 'react-responsive'
 
 type Contact = Tables<'contact'>
 
@@ -35,6 +37,7 @@ export default function ContactDetail() {
   }, [contact])
 
   const isArchived = contact?.archived ?? false
+  const isExpanded = useMediaQuery({ minWidth: 426 })
 
   if (loading && !contact) {
     return (
@@ -166,49 +169,100 @@ export default function ContactDetail() {
               {isArchived && <Badge variant="secondary">Archived</Badge>}
             </div>
             <div className="flex items-center gap-2">
-              {contact.archived ? (
-                <Button variant="outline" size="sm" onClick={handleUnarchive}>
-                  <ArchiveRestore className="mr-2 h-4 w-4" />
-                  Unarchive
-                </Button>
-              ) : (
+              {isExpanded ? (
                 <>
-                  {!editMode ? (
-                    <Button variant="outline" size="sm" onClick={() => setEditMode(true)}>
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Edit
+                  {contact.archived ? (
+                    <Button variant="outline" size="sm" onClick={handleUnarchive}>
+                      <ArchiveRestore className="mr-2 h-4 w-4" />
+                      Unarchive
                     </Button>
                   ) : (
                     <>
-                      <Button variant="outline" size="sm" onClick={handleCancel}>
-                        <X className="mr-2 h-4 w-4" />
-                        Cancel
-                      </Button>
-                      <Button size="sm" onClick={handleSave}>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save
+                      {!editMode ? (
+                        <Button variant="outline" size="sm" onClick={handleStartEdit}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit
+                        </Button>
+                      ) : (
+                        <>
+                          <Button variant="outline" size="sm" onClick={handleCancel}>
+                            <X className="mr-2 h-4 w-4" />
+                            Cancel
+                          </Button>
+                          <Button size="sm" onClick={handleSave}>
+                            <Save className="mr-2 h-4 w-4" />
+                            Save
+                          </Button>
+                        </>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setArchiveConfirmOpen(true)}
+                      >
+                        <Archive className="mr-2 h-4 w-4" />
+                        Archive
                       </Button>
                     </>
                   )}
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setArchiveConfirmOpen(true)}
+                    onClick={() => setDeleteConfirmOpen(true)}
+                    className="text-destructive hover:text-destructive"
                   >
-                    <Archive className="mr-2 h-4 w-4" />
-                    Archive
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
                   </Button>
                 </>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {contact.archived ? (
+                      <DropdownMenuItem onClick={handleUnarchive}>
+                        <ArchiveRestore className="mr-2 h-4 w-4" />
+                        Unarchive
+                      </DropdownMenuItem>
+                    ) : (
+                      <>
+                        {!editMode ? (
+                          <DropdownMenuItem onClick={handleStartEdit}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                        ) : (
+                          <>
+                            <DropdownMenuItem onClick={handleSave}>
+                              <Save className="mr-2 h-4 w-4" />
+                              Save
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleCancel}>
+                              <X className="mr-2 h-4 w-4" />
+                              Cancel
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                        <DropdownMenuItem onClick={() => setArchiveConfirmOpen(true)}>
+                          <Archive className="mr-2 h-4 w-4" />
+                          Archive
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    <DropdownMenuItem
+                      onClick={() => setDeleteConfirmOpen(true)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setDeleteConfirmOpen(true)}
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </Button>
             </div>
           </div>
         </CardHeader>

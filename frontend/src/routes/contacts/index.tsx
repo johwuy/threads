@@ -16,6 +16,7 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ArrowUpDown, ArrowUp, ArrowDown, Plus, MoreHorizontal, Pencil, Trash2, Archive, ArchiveRestore } from 'lucide-react'
+import { useMediaQuery } from 'react-responsive'
 
 type Contact = Tables<'contact'>
 type SortField = 'birthday' | 'name'
@@ -40,6 +41,8 @@ function SortIcon({ field, sortField, sortDirection }: {
 export default function Contacts() {
   const navigate = useNavigate()
   const { contacts, loading, sortField, sortDirection, showArchived, createContact, updateContact, deleteContact, archiveContact, unarchiveContact, setSorting, setShowArchived } = useContacts()
+
+  const isExpanded = useMediaQuery({ minWidth: 426 })
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingContact, setEditingContact] = useState<Contact | null>(null)
@@ -206,8 +209,8 @@ export default function Contacts() {
               </div>
             </div>
             <Button onClick={openAddDialog}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Contact
+              <Plus className={`${isExpanded ? 'mr-2' : ''} h-4 w-4`} />
+              {isExpanded && "Add Contact"}
             </Button>
           </div>
         </CardHeader>

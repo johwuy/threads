@@ -1,15 +1,218 @@
+import { useState } from 'react'
+import { format, parse } from 'date-fns'
+import { toast } from 'sonner'
+import { Smile, Meh, Frown, Plus, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { useInteractions } from '@/hooks/useInteractions'
+import type { Tables } from '@/lib/database.types'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { DatePicker } from '@/components/ui/date-picker'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+
+type Interaction = Tables<'interaction'>
+type Rating = 'happy' | 'neutral' | 'sad'
+
+const RATINGS = [
+  { value: 'happy' as const,   icon: Smile,  label: 'Happy'   },
+  { value: 'neutral' as const, icon: Meh,    label: 'Neutral' },
+  { value: 'sad' as const,     icon: Frown,  label: 'Sad'     },
+]
+
+const RATING_ICONS = { happy: Smile, neutral: Meh, sad: Frown }
+
 interface InteractionsTabProps {
   contactId: string
   contactName: string
 }
 
-export function InteractionsTab({ contactName }: InteractionsTabProps) {
+export function InteractionsTab({ contactId, contactName }: InteractionsTabProps) {
+  const { interactions, loading, createInteraction, updateInteraction, deleteInteraction } = useInteractions(contactId)
+
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingInteraction, setEditingInteraction] = useState<Interaction | null>(null)
+  const [formData, setFormData] = useState({ date: '', content: '', rating: 'happy' as Rating })
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [interactionToDelete, setInteractionToDelete] = useState<Interaction | null>(null)
+
+  const formatDate = (dateString: string) => {
+    const date = parse(dateString, 'yyyy-MM-dd', new Date())
+    return format(date, 'MMMM d, yyyy')
+  }
+
+  const openAddDialog = () => {
+    setEditingInteraction(null)
+    setFormData({ date: format(new Date(), 'yyyy-MM-dd'), content: '', rating: 'happy' })
+    setDialogOpen(true)
+  }
+
+  const openEditDialog = (interaction: Interaction) => {
+    setEditingInteraction(interaction)
+    setFormData({ date: interaction.date, content: interaction.content, rating: interaction.rating as Rating })
+    setDialogOpen(true)
+  }
+
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!formData.content.trim()) return toast.error('Content is required')
+    if (!formData.date) return toast.error('Date is required')
+    if (!formData.rating) return toast.error('Rating is required')
+
+    const promise = editingInteraction
+      ? updateInteraction(editingInteraction.id, formData)
+      : createInteraction(formData)
+    setDialogOpen(false)
+    toast.promise(promise, {
+      loading: editingInteraction ? 'Updating interaction...' : 'Creating interaction...',
+      success: editingInteraction ? 'Interaction updated' : 'Interaction created',
+      error: (err) => `Failed to save: ${err.message}`,
+    })
+  }
+
+  const handleDelete = () => {
+    if (!interactionToDelete) return
+    setDeleteConfirmOpen(false)
+    toast.promise(deleteInteraction(interactionToDelete.id), {
+      loading: 'Deleting interaction...',
+      success: 'Interaction deleted',
+      error: (err) => `Failed to delete: ${err.message}`,
+    })
+    setInteractionToDelete(null)
+  }
+
   return (
-    <div className="text-center py-12 text-muted-foreground">
-      <p className="text-lg font-medium mb-2">Interactions Coming Soon</p>
-      <p className="text-sm">
-        Create an interactions table in your database to start tracking your communication history with {contactName}.
-      </p>
-    </div>
+    <>
+      <div className="flex justify-end">
+        <Button size="sm" onClick={openAddDialog}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Interaction
+        </Button>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <p>Loading interactions...</p>
+        </div>
+      ) : interactions.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-lg font-medium mb-2">No interactions yet</p>
+          <p className="text-sm">Add an interaction with {contactName} to get started.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {interactions.map((interaction) => {
+            const RatingIcon = RATING_ICONS[interaction.rating as Rating]
+            return (
+              <Card key={interaction.id}>
+                <CardContent className="pt-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                        <RatingIcon className="h-4 w-4" />
+                        <span>{formatDate(interaction.date)}</span>
+                      </div>
+                      <p className="whitespace-pre-wrap">{interaction.content}</p>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 shrink-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEditDialog(interaction)}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => { setInteractionToDelete(interaction); setDeleteConfirmOpen(true) }}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Add/Edit Interaction Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingInteraction ? 'Edit Interaction' : 'Add Interaction'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <DatePicker
+              date={formData.date || null}
+              onDateChange={(date) => setFormData({ ...formData, date: date || '' })}
+              placeholder="Select date"
+              label="Date"
+              id="interaction-date"
+            />
+            <div className="grid gap-2">
+              <Label>How did it go?</Label>
+              <div className="flex gap-2">
+                {RATINGS.map(({ value, icon: Icon, label }) => (
+                  <Button
+                    key={value}
+                    type="button"
+                    variant={formData.rating === value ? 'default' : 'outline'}
+                    className="flex-1"
+                    onClick={() => setFormData({ ...formData, rating: value })}
+                  >
+                    <Icon className="mr-2 h-4 w-4" />
+                    {label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="interaction-content">Content</Label>
+              <textarea
+                id="interaction-content"
+                value={formData.content}
+                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                rows={4}
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                placeholder="Describe the interaction..."
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+              <Button type="submit">{editingInteraction ? 'Save Changes' : 'Add Interaction'}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Interaction Confirmation */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete interaction?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this interaction. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

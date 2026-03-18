@@ -84,12 +84,14 @@ export function InteractionsTab({ contactId, contactName }: InteractionsTabProps
 
   return (
     <>
-      <div className="flex justify-end">
-        <Button size="sm" onClick={openAddDialog}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Interaction
-        </Button>
-      </div>
+      {!loading && (
+        <div className="flex justify-end">
+          <Button size="sm" onClick={openAddDialog}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Interaction
+          </Button>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-12 text-muted-foreground">

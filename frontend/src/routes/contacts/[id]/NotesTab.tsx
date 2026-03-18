@@ -74,12 +74,14 @@ export function NotesTab({ contactId, contactName }: NotesTabProps) {
 
   return (
     <>
-      <div className="flex justify-end">
-        <Button size="sm" onClick={openAddDialog}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Note
-        </Button>
-      </div>
+      {!loading && (
+        <div className="flex justify-end">
+          <Button size="sm" onClick={openAddDialog}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Note
+          </Button>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-12 text-muted-foreground">

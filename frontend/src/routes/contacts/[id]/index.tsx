@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { format, parse } from 'date-fns'
 import { toast } from 'sonner'
@@ -21,16 +21,28 @@ type Contact = Tables<'contact'>
 export default function ContactDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { getContact, updateContact, deleteContact, archiveContact, unarchiveContact } = useContacts()
+  const { loading, getContact, updateContact, deleteContact, archiveContact, unarchiveContact } = useContacts()
 
   const contact = getContact(id || '')
 
   const [editMode, setEditMode] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false)
-  const [formData, setFormData] = useState<Contact | null>(contact || null)
+  const [formData, setFormData] = useState<Contact | null>(null)
+
+  useEffect(() => {
+    if (contact) setFormData(contact)
+  }, [contact])
 
   const isArchived = contact?.archived ?? false
+
+  if (loading && !contact) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
   if (!contact || !formData) {
     return (

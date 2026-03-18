@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { format, parse } from 'date-fns'
 import { toast } from 'sonner'
@@ -32,10 +32,6 @@ export default function ContactDetail() {
   const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false)
   const [formData, setFormData] = useState<Contact | null>(null)
 
-  useEffect(() => {
-    if (contact) setFormData(contact)
-  }, [contact])
-
   const isArchived = contact?.archived ?? false
   const isExpanded = useMediaQuery({ minWidth: 426 })
 
@@ -47,7 +43,7 @@ export default function ContactDetail() {
     )
   }
 
-  if (!contact || !formData) {
+  if (!contact) {
     return (
       <div className="max-w-4xl mx-auto">
         <Card>
@@ -68,6 +64,11 @@ export default function ContactDetail() {
     )
   }
   
+  const handleStartEdit = () => {
+    setFormData(contact)
+    setEditMode(true)
+  }
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Not set'
     // Parse as date-only string and format
@@ -76,24 +77,24 @@ export default function ContactDetail() {
   }
   
   const handleSave = () => {
-    if (!formData.name.trim()) {
+    if (!formData!.name.trim()) {
       toast.error('Name is required')
       return
     }
-    
+
     // Exit edit mode immediately for instant feedback
     setEditMode(false)
-    
+
     const data: TablesUpdate<'contact'> = {
-      name: formData.name.trim(),
-      email: formData.email?.trim() || null,
-      phone: formData.phone?.trim() || null,
-      birthday: formData.birthday || null
+      name: formData!.name.trim(),
+      email: formData!.email?.trim() || null,
+      phone: formData!.phone?.trim() || null,
+      birthday: formData!.birthday || null
     }
-    
+
     // Show toast with promise
     toast.promise(
-      updateContact(formData.id, data),
+      updateContact(formData!.id, data),
       {
         loading: 'Saving changes...',
         success: 'Contact updated successfully',
@@ -275,8 +276,8 @@ export default function ContactDetail() {
                   <Label htmlFor="name">Name *</Label>
                   <Input
                     id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    value={formData!.name}
+                    onChange={(e) => setFormData({ ...formData!, name: e.target.value })}
                     required
                   />
                 </div>
@@ -285,8 +286,8 @@ export default function ContactDetail() {
                   <Input
                     id="email"
                     type="email"
-                    value={formData.email || ''}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    value={formData!.email || ''}
+                    onChange={(e) => setFormData({ ...formData!, email: e.target.value })}
                   />
                 </div>
                 <div className="grid gap-2">
@@ -294,13 +295,13 @@ export default function ContactDetail() {
                   <Input
                     id="phone"
                     type="tel"
-                    value={formData.phone || ''}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    value={formData!.phone || ''}
+                    onChange={(e) => setFormData({ ...formData!, phone: e.target.value })}
                   />
                 </div>
                 <DatePicker
-                  date={formData.birthday?.split('T')[0] || null}
-                  onDateChange={(date) => setFormData({ ...formData, birthday: date })}
+                  date={formData!.birthday?.split('T')[0] || null}
+                  onDateChange={(date) => setFormData({ ...formData!, birthday: date })}
                   placeholder="Select birthday"
                   label="Birthday"
                   id="birthday"

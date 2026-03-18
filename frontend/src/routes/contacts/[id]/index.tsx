@@ -4,6 +4,8 @@ import { format, parse } from 'date-fns'
 import { toast } from 'sonner'
 import { useContacts } from '@/hooks/useContacts'
 import type { Tables, TablesUpdate } from '@/lib/database.types'
+import { NotesTab } from './NotesTab'
+import { InteractionsTab } from './InteractionsTab'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -130,7 +132,7 @@ export default function ContactDetail() {
       }
     )
   }
-  
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Navigation Header */}
@@ -268,20 +270,10 @@ export default function ContactDetail() {
               <TabsTrigger value="interactions">Interactions</TabsTrigger>
             </TabsList>
             <TabsContent value="notes" className="space-y-4">
-              <div className="text-center py-12 text-muted-foreground">
-                <p className="text-lg font-medium mb-2">Notes Coming Soon</p>
-                <p className="text-sm">
-                  Add a notes field to your database to start tracking notes about your contacts.
-                </p>
-              </div>
+              <NotesTab contactId={contact.id} contactName={contact.name} />
             </TabsContent>
             <TabsContent value="interactions" className="space-y-4">
-              <div className="text-center py-12 text-muted-foreground">
-                <p className="text-lg font-medium mb-2">Interactions Coming Soon</p>
-                <p className="text-sm">
-                  Create an interactions table in your database to start tracking your communication history.
-                </p>
-              </div>
+              <InteractionsTab contactId={contact.id} contactName={contact.name} />
             </TabsContent>
           </Tabs>
         </CardContent>

@@ -36,11 +36,11 @@ export interface ContactsContextType {
 
   // CRUD Operations
   createContact: (data: TablesInsert<'contact'>) => Promise<void>
-  updateContact: (id: number, data: TablesUpdate<'contact'>) => Promise<void>
-  deleteContact: (id: number) => Promise<void>
-  getContact: (id: number) => Contact | undefined
-  archiveContact: (id: number) => Promise<void>
-  unarchiveContact: (id: number) => Promise<void>
+  updateContact: (id: string, data: TablesUpdate<'contact'>) => Promise<void>
+  deleteContact: (id: string) => Promise<void>
+  getContact: (id: string) => Contact | undefined
+  archiveContact: (id: string) => Promise<void>
+  unarchiveContact: (id: string) => Promise<void>
 
   // Utilities
   setSorting: (field: SortField, direction: SortDirection) => void
@@ -114,7 +114,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
     }
   }, [user, fetchContacts])
 
-  const updateContact = useCallback(async (id: number, data: TablesUpdate<'contact'>) => {
+  const updateContact = useCallback(async (id: string, data: TablesUpdate<'contact'>) => {
     try {
       const { error } = await supabase
         .from('contact')
@@ -128,7 +128,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
     }
   }, [fetchContacts])
 
-  const deleteContact = useCallback(async (id: number) => {
+  const deleteContact = useCallback(async (id: string) => {
     try {
       const { error } = await supabase
         .from('contact')
@@ -142,7 +142,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
     }
   }, [fetchContacts])
 
-  const archiveContact = useCallback(async (id: number) => {
+  const archiveContact = useCallback(async (id: string) => {
     try {
       const { error } = await supabase
         .from('contact')
@@ -156,7 +156,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
     }
   }, [fetchContacts])
 
-  const unarchiveContact = useCallback(async (id: number) => {
+  const unarchiveContact = useCallback(async (id: string) => {
     try {
       const { error } = await supabase
         .from('contact')
@@ -170,7 +170,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
     }
   }, [fetchContacts])
 
-  const getContact = useCallback((id: number) => {
+  const getContact = useCallback((id: string) => {
     return contacts.find(c => c.id === id)
   }, [contacts])
 

@@ -20,7 +20,7 @@ export type Database = {
           birthday: string | null
           created_at: string
           email: string | null
-          id: number
+          id: string
           name: string
           phone: string | null
           user_id: string | null
@@ -30,7 +30,7 @@ export type Database = {
           birthday?: string | null
           created_at?: string
           email?: string | null
-          id?: number
+          id?: string
           name: string
           phone?: string | null
           user_id?: string | null
@@ -40,7 +40,7 @@ export type Database = {
           birthday?: string | null
           created_at?: string
           email?: string | null
-          id?: number
+          id?: string
           name?: string
           phone?: string | null
           user_id?: string | null

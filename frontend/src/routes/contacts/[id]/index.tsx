@@ -21,7 +21,7 @@ export default function ContactDetail() {
   const navigate = useNavigate()
   const { getContact, updateContact, deleteContact, archiveContact, unarchiveContact } = useContacts()
 
-  const contact = getContact(Number(id))
+  const contact = getContact(id || '')
 
   const [editMode, setEditMode] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)

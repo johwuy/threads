@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth'
 import type { Tables } from '@/lib/database.types'
 
 type Interaction = Tables<'interaction'>
-type Rating = 'happy' | 'neutral' | 'sad'
+type Rating = 'positive' | 'neutral' | 'negative'
 
 interface UseInteractionsReturn {
   interactions: Interaction[]

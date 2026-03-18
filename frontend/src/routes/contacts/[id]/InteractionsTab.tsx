@@ -13,15 +13,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 type Interaction = Tables<'interaction'>
-type Rating = 'happy' | 'neutral' | 'sad'
+type Rating = 'positive' | 'neutral' | 'negative'
 
 const RATINGS = [
-  { value: 'happy' as const,   icon: Smile,  label: 'Happy'   },
-  { value: 'neutral' as const, icon: Meh,    label: 'Neutral' },
-  { value: 'sad' as const,     icon: Frown,  label: 'Sad'     },
+  { value: 'positive' as const,  icon: Smile,  label: 'Positive'  },
+  { value: 'neutral' as const,   icon: Meh,    label: 'Neutral'   },
+  { value: 'negative' as const,  icon: Frown,  label: 'Negative'  },
 ]
 
-const RATING_ICONS = { happy: Smile, neutral: Meh, sad: Frown }
+const RATING_ICONS = { positive: Smile, neutral: Meh, negative: Frown }
 
 interface InteractionsTabProps {
   contactId: string
@@ -33,7 +33,7 @@ export function InteractionsTab({ contactId, contactName }: InteractionsTabProps
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingInteraction, setEditingInteraction] = useState<Interaction | null>(null)
-  const [formData, setFormData] = useState({ date: '', content: '', rating: 'happy' as Rating })
+  const [formData, setFormData] = useState({ date: '', content: '', rating: 'positive' as Rating })
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [interactionToDelete, setInteractionToDelete] = useState<Interaction | null>(null)
 
@@ -44,7 +44,7 @@ export function InteractionsTab({ contactId, contactName }: InteractionsTabProps
 
   const openAddDialog = () => {
     setEditingInteraction(null)
-    setFormData({ date: format(new Date(), 'yyyy-MM-dd'), content: '', rating: 'happy' })
+    setFormData({ date: format(new Date(), 'yyyy-MM-dd'), content: '', rating: 'positive' })
     setDialogOpen(true)
   }
 

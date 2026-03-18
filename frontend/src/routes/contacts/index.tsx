@@ -180,7 +180,7 @@ export default function Contacts() {
     )
   }
 
-  const handleRowClick = (contactId: number) => {
+  const handleRowClick = (contactId: string) => {
     navigate(`/contacts/${contactId}`)
   }
 
